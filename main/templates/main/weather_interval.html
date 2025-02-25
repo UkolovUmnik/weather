@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+ <form method="POST">
+    {% csrf_token %}
+   <h2>Интервал выхода погоды</h2>
+   <p>
+        <label>Год</label><br>
+			<select id="year" name="year" onchange="change_all_symbols_in_table()">
+			{% for year in year_list %}
+				{% if year == year_old %}
+					<option selected="selected" value="{{year}}">{{year}}</option>
+				{% else %}
+      					<option value="{{year}}">{{year}}</option>
+				{% endif %}
+  			{% endfor %}
+	     </select>
+    </p>
+	<p>
+        <label>Месяц</label><br>
+			<select id="month_number" name="month_number" onchange="change_all_symbols_in_table()">
+			{% for month_name, month_number in month_dict.items %}
+				{% if month_number == month_number_old %}
+					<option selected="selected" value="{{month_number}}">{{month_name}}</option>
+				{% else %}
+      					<option value="{{month_number}}">{{month_name}}</option>
+				{% endif %}	
+  			{% endfor %}
+	     </select>
+    </p>
+	<table>
+		<thead>
+			<th>День начала</th><th>День окончания</th>
+		</thead>
+		<tr>
+			<td>
+				<p>
+					<select id="day_min" name="day_min">
+						{% for day_number in days_list %}
+							<option value="{{day_number}}">{{day_number}}</option>	
+						{% endfor %}
+					</select>
+				</p>
+			</td>
+			<td>
+				<p>
+					<select id="day_max" name="day_max">
+						{% for day_number in days_list %}
+							<option value="{{day_number}}">{{day_number}}</option>	
+						{% endfor %}
+					</select>
+				</p>	
+				<p>
+					<input type="date" name="calendar">
+				</p>				
+			</td>
+			
+		</tr>
+	</table>
+	
+	<h3 style="display: block;color:red" id="alarm">{{alert}}</h3>
+	
+	
+	<p>
+        <label>Статус погоды</label><br>
+			<select name="status">
+				<option value="True">Поставить погоду</option>
+      			<option value="False">Убрать погоду</option>
+	     </select>
+    </p>
+	<div style="display: none" id="jsonData1" data="{{ gorod }}"></div>
+	<div style="display: none" id="jsonData2" data="{{ radio }}"></div>
+	<input type="submit" value="Создать" >
+ </form>
+	
+	
+<!-- 	
+<script type="text/javascript">
+
+// обработчик добавления элемента
+function change_all_symbols_in_table(){
+	var year = document.getElementById("year").value;
+	var month_number = document.getElementById("month_number").value;
+	var gorod = document.querySelector('#jsonData1').getAttribute('data')
+	var radio = document.querySelector('#jsonData2').getAttribute('data')
+	window.location.href = '/pogoda_calendar/'+gorod+'/'+radio+'/'+'update_form/'+year+'/'+month_number+'/';
+};		
+ 
+</script>
+ -->
+
+<script type="text/javascript">
+function daysInMonth (month, year) {
+  return new Date(parseInt(year), parseInt(month), 0).getDate();
+}
+
+// обработчик добавления элемента
+function change_all_symbols_in_table(){
+	var year = document.getElementById("year").value;
+	var month_number = document.getElementById("month_number").value;
+	var count_days_in_month = daysInMonth(month_number,year)
+	<!-- alert(daysInMonth(month_number,year))
+	var select_day_min = document.getElementById("day_min")
+	var select_day_max = document.getElementById("day_max")
+	if( select_day_min ){
+		select_day_min.innerHTML = "";;
+		}
+	if( select_day_max ){
+		select_day_max.innerHTML = "";;
+		}
+	for(var i = 1; i < count_days_in_month+1; i++) {
+		var opt = i;
+		var el = document.createElement("option");
+		el.textContent = opt;
+		el.value = opt;
+		select_day_min.appendChild(el);
+		}
+	for(var i = 1; i < count_days_in_month+1; i++) {
+		var opt = i;
+		var el = document.createElement("option");
+		el.textContent = opt;
+		el.value = opt;
+		select_day_max.appendChild(el);
+		}		
+};
+	
+ 
+</script> 
+ 
+ 
+ 
+</body>
+</html>

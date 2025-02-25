@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Радио</label><br>
+            <input type="text" name="radio" value="{{data.radio}}" />
+        </p>
+		<p>
+            <label>Название радио (погода) на станции</label><br>
+            <input type="text" name="radio_on_station" value="{{data.radio_on_station}}" />
+        </p>
+		<input style="display:none" type="text" name="old_radio" value="{{data.radio}}" />
+        <input type="submit" value="Сохранить" >
+    </form>
+</body>
+</html>

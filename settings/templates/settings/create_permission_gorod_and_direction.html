@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Имя</label><br>
+	    <select name="name">
+		{% if users.count > 0 %}
+			{% for element in users %}
+      				<option value="{{ element }}">{{ element }}</option>
+  			{% endfor %}
+		{% endif %}
+	    </select>
+        </p>
+	 <p>
+            <label>Город</label><br>
+	    <select name="gorod">
+		{% if table_goroda.count > 0 %}
+			{% for element in table_goroda %}
+      				<option value="{{ element.gorod }}">{{ element.gorod }}</option>
+  			{% endfor %}
+		{% endif %}
+	    </select>
+        </p>
+	<p>
+            <label>Направление</label><br>
+            <select name="direction">
+		{% if table_directions.count > 0 %}
+			{% for element in table_directions %}
+      				<option value="{{ element.direction }}">{{ element.direction }}</option>
+  			{% endfor %}
+		{% endif %}
+	    </select>
+        </p>
+        <input type="submit" value="Создать" >
+    </form>
+</body>
+</html>

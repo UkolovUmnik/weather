@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+   <h2>Календарь погоды</h2>
+   <h3>{{gorod}}</h3>
+   <h3>{{radio}}</h3>   
+		{% for element in table_weather_calendar %}	
+			<table>
+				<thead>
+					<th>Год</th><th>Месяц</th><th>День</th><th>Статус</th>
+				</thead>
+				<tr>
+					<td>{{ element.year }}</td>
+					<td>{{ element.month }}</td>
+					<td>{{ element.day }}</td>
+					<td>{{ element.status_weather }}</td>
+				</tr>
+			</table>
+		{% endfor %}
+
+<table>
+	<tr><td><a href="create/0">Добавить</a></td></tr>
+</table>		
+
+
+</body>
+</html>

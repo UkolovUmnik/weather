@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Город</label><br>
+            <input type="text" name="gorod" value="{{data.gorod}}" />
+        </p>
+		<p>
+            <label>Название города на станции</label><br>
+            <input type="text" name="gorod_on_station" value="{{data.gorod_on_station}}" />
+        </p>
+		<p>
+            <label>Город в Яндекс.Погода (для ссылки)</label><br>
+            <input type="text" name="gorod_in_yandex_weather" value="{{data.gorod_in_yandex_weather}}" />
+        </p>
+		<p>
+            <label>Город id в Яндекс.Погода (для ссылки)</label><br>
+            <input type="text" name="gorod_id_yandex_weather" value="{{data.gorod_id_yandex_weather}}" />
+        </p>
+		<p>
+            <label>Широта и долгота в Яндекс.Погода (для ссылки)</label><br>
+            <input type="text" name="gorod_lat_and_lon" value="{{data.gorod_lat_and_lon}}" />
+        </p>
+			<input style="display:none" type="text" name="old_gorod" value="{{data.gorod}}" />
+        <input type="submit" value="Сохранить" >
+    </form>
+</body>
+</html>

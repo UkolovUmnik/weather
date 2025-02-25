@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+   <h3>Радио</h3>
+    <table>
+        {% for radio in list_radio %}
+		<tr><td><a href="{{ radio }}/" >{{ radio }}</a></td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

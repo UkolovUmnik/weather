@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Город</label><br>
+            <select name="gorod"">
+		{% if table_goroda.count > 0 %}
+			{% for element in table_goroda %}
+				{% if element.gorod == data.gorod %}
+					<option selected="selected">
+						{{data.gorod}}
+					</option>
+				{% else %}
+      					<option value="{{ element.gorod }}">{{ element.gorod }}</option>
+				{% endif %}	
+  			{% endfor %}
+		{% endif %}
+	     </select>
+        </p>
+	<p>
+            <label>Должность</label><br>
+            <select name="dolzhnost">
+            {% if table_dolzhnost.count > 0 %}
+			{% for element in table_dolzhnost %}
+				{% if element.dolzhnost == data.dolzhnost %}
+					<option selected="selected">
+						{{data.dolzhnost}}
+					</option>
+				{% else %}
+      					<option value="{{ element.dolzhnost }}">{{ element.dolzhnost }}</option>
+				{% endif %}	
+  			{% endfor %}
+		{% endif %} 
+		</select>
+        </p>
+	<p>
+            <label>Направление</label><br>
+            <select name="direction">
+		{% if table_directions.count > 0 %}
+			{% for element in table_directions %}
+				{% if element.direction == data.direction %}
+					<option selected="selected">
+						{{data.direction}}
+					</option>
+				{% else %}
+      					<option value="{{ element.direction }}">{{ element.direction }}</option>
+				{% endif %}
+  			{% endfor %}
+		{% endif %}
+	    </select>
+        </p>
+        <p>
+            <label>Элемент мотивации</label><br>
+            <select name="element_motivation">
+		{% if table_zarplata_list_elements.count > 0 %}
+			{% for element in table_zarplata_list_elements %}
+				{% if element.zp_element == data.zp_element %}
+					<option selected="selected">
+						{{data.zp_element}}
+					</option>
+				{% else %}
+      					<option value="{{ element.zp_element }}">{{ element.zp_element }}</option>
+				{% endif %}
+  			{% endfor %}
+		{% endif %}
+	    </select>
+        </p>
+	<p>
+            <label>Значение</label><br>
+            <input type="integer" name="value" value="{{ data.value }}" />
+        </p>
+
+        <input type="submit" value="Сохранить" >
+    </form>
+</body>
+</html>

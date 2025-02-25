@@ -1,0 +1,44 @@
+table.vedomost_table {
+	border-spacing: 0 10px;
+	font-family: 'MetaSerifPro-Book';
+}
+
+table.vedomost_table th{
+	padding: 10px 20px;
+	color: white;
+	border-right: 2px solid; 
+	font-size: 0.9em;
+	background-color: RGB(84, 118, 255);
+	
+}
+
+table.vedomost_table td {
+	vertical-align: middle;
+	padding: 10px;
+	font-size: 14px;
+	text-align: center;
+	border-top: 2px solid #56433D;
+	border-bottom: 2px solid #56433D;
+	border-right: 2px solid #56433D;
+}
+
+table.tabel_table {
+	border-spacing: 0 0px;
+	font-family: 'MetaSerifPro-Book';
+}
+
+table.tabel_table th{
+	padding: 10px 12px;
+	color: black;
+	border: 1px solid; 
+	font-size: 0.9em;
+	
+}
+
+table.tabel_table td {
+	vertical-align: middle;
+	padding: 10px;
+	font-size: 14px;
+	text-align: center;
+	border: 1px solid;
+}

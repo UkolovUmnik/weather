@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <h2>Общая таблица мотивации</h2>
+    {% if table_motivation.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Должность</th><th>Направление</th><th>Элемент зарплаты</th><th>Тип мотивации</th><th></th></thead>
+        {% for element in table_motivation %}
+        <tr>
+	    <td>{{ element.gorod }}</td>
+            <td>{{ element.dolzhnost }}</td>
+	    <td>{{ element.direction }}</td>
+            <td>{{ element.zarplata_element }}</td>
+	    <td>{{ element.type_motivation}}</td>
+            <td><a href="edit_zarplata_elements/{{element.id}}">Изменить</a> | <a href="delete_zarplata_elements/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+<table>
+	<tr><td><a href="create_zarplata_elements/">Добавить</a></td></tr>
+</table>
+
+<h2>Таблица стандартной мотивации</h2>
+{% if table_standart_motivation.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Должность</th><th>Направление</th><th>Эемент мотивации</th><th>Значение</th></thead>
+        {% for element in table_standart_motivation %}
+        <tr>
+	    <td>{{ element.gorod }}</td>
+            <td>{{ element.dolzhnost }}</td>
+	    <td>{{ element.direction }}</td>
+            <td>{{ element.element_motivation }}</td>
+            <td>{{ element.value }}</td>
+            <td><a href="edit_standart_motivation/{{element.id}}">Изменить</a> | <a href="delete_standart_motivation/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+<table>
+	<tr><td><a href="create_standart_motivation/">Добавить</a></td></tr>
+</table>
+
+
+
+</body>
+</html>

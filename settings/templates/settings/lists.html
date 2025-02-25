@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+<h2>Настройки</h2>
+<h2>Список городов</h2>
+{% if table_goroda.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Название города на станции</th><th>Город в Яндекс.Погода</th><th>Город id в Яндекс.Погода</th><th>Широта и долгота</th><th></th></thead>
+        {% for element in table_goroda %}
+        <tr>
+			<td>{{ element.gorod }}</td>
+			<td>{{ element.gorod_on_station }}</td>
+			<td>{{ element.gorod_in_yandex_weather }}</td>
+			<td>{{ element.gorod_id_yandex_weather }}</td>
+			<td>{{ element.gorod_lat_and_lon }}</td>
+            <td><a href="gorod/edit/{{element.id}}">Изменить</a> | <a href="gorod/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="gorod/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Список радио</h2>
+{% if table_radio.count > 0 %}
+    <table>
+        <thead><th>Радио</th><th>Название радио (погода) на станции</th></thead>
+        {% for element in table_radio %}
+        <tr>
+	    <td>{{ element.radio }}</td>
+		<td>{{ element.radio_on_station }}</td>
+            <td><a href="radio/edit/{{element.id}}">Изменить</a> | <a href="radio/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="radio/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Радио по городам</h2>
+{% if table_goroda_and_radio.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Радио</th><th></th></thead>
+        {% for element in table_goroda_and_radio %}
+        <tr>
+			<td>{{ element.gorod }}</td>
+			<td>{{ element.radio }}</td>
+            <td><a href="gorod_and_radio/edit/{{element.id}}">Изменить</a> | <a href="gorod_and_radio/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="gorod_and_radio/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Постоянная погода</h2>
+{% if table_constant_weather.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Радио</th><th></th></thead>
+        {% for element in table_constant_weather %}
+        <tr>
+			<td>{{ element.gorod }}</td>
+			<td>{{ element.radio }}</td>
+            <td><a href="constant_weather/edit/{{element.id}}">Изменить</a> | <a href="constant_weather/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="constant_weather/create/0">Добавить</a></td></tr>
+</table>
+
+
+
+</body>
+</html>
