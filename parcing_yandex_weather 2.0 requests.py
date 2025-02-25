@@ -2,14 +2,12 @@ import sqlite3
 import requests
 ##import logging
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, date
 from datetime import timedelta
 import random
 import time
 import os
-import sys
 from create_weather_files2 import create_weather_file
-##import pickle
 
 WEEKDAYS_DICT={1:'Пн',
               2:'Вт',
@@ -30,7 +28,7 @@ WIND_DIRECTION_DICT={'В':'В',
                          'З':'З',
         }
 
-def get_radio_dict(cursor,connection,name_table):
+def get_radio_dict(cursor :object, name_table: str) -> dict:
     radio_dict=dict()
     command="""
         SELECT radio,radio_on_station FROM {name_table}
@@ -42,8 +40,15 @@ def get_radio_dict(cursor,connection,name_table):
     return radio_dict
    
 
-def check_gorod_for_prognoz_on_date(cursor,connection,name_table,year,month,day,gorod):
+def check_gorod_for_prognoz_on_date(cursor:object,name_table:str,date_for_prognoz:date,gorod:str)->(bool,dict):
     dict_radio=dict()
+    year=date_for_prognoz.year
+    month=date_for_prognoz.month
+    if month<10:
+        month='0'+str(month)      
+    day=date_for_prognoz.day
+    if day<10:
+        day='0'+str(day)
     command="""
         SELECT radio,status_weather FROM {name_table} WHERE gorod='{gorod}' AND year='{year}' AND month='{month}' AND day='{day}'
         """
@@ -58,16 +63,7 @@ def check_gorod_for_prognoz_on_date(cursor,connection,name_table,year,month,day,
         
     return status_gorod, dict_radio
 
-
-##def get_list_goroda(cursor,connection,name_table):
-##    command="""
-##        SELECT gorod,gorod_on_station,gorod_in_yandex_weather,gorod_lat_and_lon FROM {name_table}
-##        """
-##    cursor.execute(command.format(name_table=name_table))
-##    result = cursor.fetchall()
-##    return result
-
-def get_cities_dict(cursor,connection,name_table):
+def get_cities_dict(cursor:object,name_table:str):
     cities_dict={}
     command="""
         SELECT gorod,gorod_on_station,gorod_in_yandex_weather,gorod_lat_and_lon FROM {name_table}
@@ -78,7 +74,7 @@ def get_cities_dict(cursor,connection,name_table):
         cities_dict[f'{row[0]}']={'city_on_station':f'{row[1]}','city_in_yandex':f'{row[2]}','lat_and_lon':f'{row[3]}'}
     return cities_dict
 
-def check_gorod_in_table_constant_weather(cursor,connection,name_table,gorod):
+def check_gorod_in_table_constant_weather(cursor:object,name_table:str,gorod:str):
     dict_radio=dict()
     command="""
         SELECT radio FROM {name_table} WHERE gorod='{gorod}'
@@ -94,52 +90,13 @@ def check_gorod_in_table_constant_weather(cursor,connection,name_table,gorod):
         
     return status_gorod, dict_radio
 
-##def get_dict_goroda_and_radio_for_prognoz(cursor,connection,list_goroda,date_for_prognoz):
-##
-##    dict_goroda_and_radio_for_prognoz=dict()
-##
-##    year=date_for_prognoz.year
-##    month=date_for_prognoz.month
-##    if month<10:
-##        month='0'+str(month)      
-##    day=date_for_prognoz.day
-##    if day<10:
-##        day='0'+str(day)
-##
-##    
-##    for gorod in list_goroda:
-##        status_gorod_constant_weather,dict_radio_constant_weather=check_gorod_in_table_constant_weather(cursor,connection,'settings_constant_weather',gorod) #есть ли город в списке постоянной погоды
-##        status_gorod_weather,dict_radio_weather=check_gorod_for_prognoz_on_date(cursor,connection,'settings_weather_calendar',year,month,day,gorod)
-##
-##        if status_gorod_constant_weather or status_gorod_weather:
-##            list_radio=[]
-##            if dict_radio_constant_weather!={}:
-##                for radio in dict_radio_constant_weather.keys():
-##                    list_radio.append(radio)
-##            if dict_radio_weather!={}:
-##                for radio in dict_radio_weather.keys():
-##                    if dict_radio_constant_weather.get(radio)==None:
-##                        list_radio.append(radio)
-##            dict_goroda_and_radio_for_prognoz[gorod]=list_radio
-##   
-##    return dict_goroda_and_radio_for_prognoz
-
 def get_dict_goroda_and_radio_for_prognoz(cursor,connection,cities_dict,date_for_prognoz):
 
     dict_goroda_and_radio_for_prognoz=dict()
 
-    year=date_for_prognoz.year
-    month=date_for_prognoz.month
-    if month<10:
-        month='0'+str(month)      
-    day=date_for_prognoz.day
-    if day<10:
-        day='0'+str(day)
-
-    
     for gorod,_ in cities_dict.items():
-        status_gorod_constant_weather,dict_radio_constant_weather=check_gorod_in_table_constant_weather(cursor,connection,'settings_constant_weather',gorod) #есть ли город в списке постоянной погоды
-        status_gorod_weather,dict_radio_weather=check_gorod_for_prognoz_on_date(cursor,connection,'settings_weather_calendar',year,month,day,gorod)
+        status_gorod_constant_weather,dict_radio_constant_weather=check_gorod_in_table_constant_weather(cursor=cursor,name_table='settings_constant_weather',gorod=gorod) #есть ли город в списке постоянной погоды
+        status_gorod_weather,dict_radio_weather=check_gorod_for_prognoz_on_date(cursor=cursor,name_table='settings_weather_calendar',date_for_prognoz=date_for_prognoz,gorod=gorod)
 
         if status_gorod_constant_weather or status_gorod_weather:
             list_radio=[]
@@ -346,8 +303,8 @@ def main(count_of_days_prognoz):
     cursor = connection.cursor()
     print(db_file)
     
-    cities_dict=get_cities_dict(cursor,connection,'settings_goroda')
-    radio_dict=get_radio_dict(cursor,connection,'settings_radio')
+    cities_dict=get_cities_dict(cursor,'settings_goroda')
+    radio_dict=get_radio_dict(cursor,'settings_radio')
     
     current_date_and_time=datetime.now()-timedelta(days=1) #изменил, чтобы на сегодня погоду сделать
     
@@ -394,26 +351,17 @@ def main(count_of_days_prognoz):
             if parametrs_weather_on_days_for_gorod==None:
                 print('Не удалось получить город '+str(gorod))
                 continue
-            #print('Параметры все не город')
-            #print(parametrs_weather_on_days_for_gorod)
             parametrs_weather_current_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('current_day'))
-##            print('Параметры на сегодня')
-##            print(parametrs_weather_current_day)
             parametrs_weather_tomorrow_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('tomorrow_day'))
-##            print('Параметры на завтра')
-##            print(parametrs_weather_tomorrow_day)
-            #print(parametrs_weather_current_day)
-            #print(parametrs_weather_tomorrow_day)
             gorod_on_station=cities_dict.get(gorod).get('city_on_station')
-##            print(gorod_on_station)
             for radio in list_radio:
-##                print(radio)
                 radio_on_station=radio_dict.get(radio).get('radio_on_station')
-##                print(radio_on_station)
                 create_weather_file(gorod, gorod_on_station, radio, parametrs_weather_current_day,parametrs_weather_tomorrow_day, prognoz_settings.get('weekday'), radio_on_station)
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
     try:
         main(count_of_days_prognoz=5)
     except Exception as e:
         print(e)
+        if connection:
+            connection.close()
     input()
