@@ -11,6 +11,8 @@ from create_weather_files2 import create_weather_file
 
 logging.basicConfig(level=logging.INFO, filename="log.log",filemode="w", format="%(asctime)s %(levelname)s %(message)s")
 
+#ruff check parcing_yandex_weather_2.0_requests.py --fix
+
 # logging.debug("A DEBUG Message")
 # logging.info("An INFO")
 # logging.warning("A WARNING")
@@ -35,6 +37,7 @@ WIND_DIRECTION_DICT={'В':'В',
                          'ЮЗ':'ЮЗ',
                          'З':'З',
         }
+
 
 def get_radio_dict(cursor : object, name_table : str):
     try:
@@ -81,56 +84,82 @@ def check_gorod_for_prognoz_on_date(cursor:object,name_table:str,date_for_progno
         
     return status_gorod, dict_radio
 
-def get_cities_dict(cursor:object,name_table:str):
+
+def get_city_info_from_bd(cursor:object,cities_info:str, cities_list:list=None):
+    try:
+        if cities_list is None:
+            command="""
+                SELECT gorod,gorod_on_station,gorod_in_yandex_weather,gorod_lat_and_lon FROM {name_table}
+                    """
+            cursor.execute(command.format(name_table=cities_info_table))            
+        else:   
+            command="""
+                SELECT gorod_on_station,gorod_in_yandex_weather,gorod_lat_and_lon FROM {name_table} WHERE gorod IN ({cities_list})
+                    """
+            cursor.execute(command.format(name_table=cities_info, cities_list=cities_list))
+        result = cursor.fetchall()
+    except Exception as e:
+        logging.warning("get_city_info_from_bd")
+        logging.warning(e)
+        return None
+    return result
+    
+
+def get_cities_dict(cursor:object,cities_info:str,user_list_cities:list):
     try:
         cities_dict={}
-        command="""
-            SELECT gorod,gorod_on_station,gorod_in_yandex_weather,gorod_lat_and_lon FROM {name_table}
-            """
-        cursor.execute(command.format(name_table=name_table))
-        result = cursor.fetchall()
-        for row in result:
-            cities_dict[f'{row[0]}']={'city_on_station':f'{row[1]}','city_in_yandex':f'{row[2]}','lat_and_lon':f'{row[3]}'}
+        for row in get_city_info_from_bd(cursor=cursor,cities_info=cities_info, user_list_cities=user_list_cities):
+            cities_dict[f'{row[0]}']={'city_on_station':f'{row[1]}','city_in_yandex':f'{row[2]}','lat_and_lon':f'{row[3]}'}   
     except Exception as e:
-        logging.warning("Problem with get_cities_dict"+'\n')
-        logging.warning(e+'\n')
+        logging.warning("get_cities_dict")
+        logging.warning(e)
         return None
     return cities_dict
 
 def check_gorod_in_table_constant_weather(cursor:object,name_table:str,gorod:str):
-    dict_radio=dict()
-    command="""
-        SELECT radio FROM {name_table} WHERE gorod='{gorod}'
-        """
-    cursor.execute(command.format(name_table=name_table,gorod=gorod))
-    result_command = cursor.fetchall()
-    if result_command==[]:
-        status_gorod=False
-    else:
-        status_gorod=True
-        for row in result_command:
-            dict_radio[f"{row[0]}"]=''   
+    try:
+        dict_radio=dict()
+        command="""
+            SELECT radio FROM {name_table} WHERE gorod='{gorod}'
+            """
+        cursor.execute(command.format(name_table=name_table,gorod=gorod))
+        result_command = cursor.fetchall()
+        if result_command==[]:
+            status_gorod=False
+        else:
+            status_gorod=True
+            for row in result_command:
+                dict_radio[f"{row[0]}"]=''
+    except Exception as e:
+        logging.warning("check_gorod_in_table_constant_weather")
+        logging.warning(e)
+        return None
         
     return status_gorod, dict_radio
 
 def get_dict_goroda_and_radio_for_prognoz(cursor:object,cities_dict:dict,date_for_prognoz):
+    try:
+        dict_goroda_and_radio_for_prognoz=dict()
 
-    dict_goroda_and_radio_for_prognoz=dict()
+        for gorod,_ in cities_dict.items():
+            status_gorod_constant_weather,dict_radio_constant_weather=check_gorod_in_table_constant_weather(cursor=cursor,name_table='settings_constant_weather',gorod=gorod) #есть ли город в списке постоянной погоды
+            status_gorod_weather,dict_radio_weather=check_gorod_for_prognoz_on_date(cursor=cursor,name_table='settings_weather_calendar',date_for_prognoz=date_for_prognoz,gorod=gorod)
 
-    for gorod,_ in cities_dict.items():
-        status_gorod_constant_weather,dict_radio_constant_weather=check_gorod_in_table_constant_weather(cursor=cursor,name_table='settings_constant_weather',gorod=gorod) #есть ли город в списке постоянной погоды
-        status_gorod_weather,dict_radio_weather=check_gorod_for_prognoz_on_date(cursor=cursor,name_table='settings_weather_calendar',date_for_prognoz=date_for_prognoz,gorod=gorod)
-
-        if status_gorod_constant_weather or status_gorod_weather:
-            list_radio=[]
-            if dict_radio_constant_weather!={}:
-                for radio in dict_radio_constant_weather.keys():
-                    list_radio.append(radio)
-            if dict_radio_weather!={}:
-                for radio in dict_radio_weather.keys():
-                    if dict_radio_constant_weather.get(radio)==None:
+            if status_gorod_constant_weather or status_gorod_weather:
+                list_radio=[]
+                if dict_radio_constant_weather!={}:
+                    for radio in dict_radio_constant_weather.keys():
                         list_radio.append(radio)
-            dict_goroda_and_radio_for_prognoz[gorod]=list_radio
+                if dict_radio_weather!={}:
+                    for radio in dict_radio_weather.keys():
+                        if dict_radio_constant_weather.get(radio)==None:
+                            list_radio.append(radio)
+                dict_goroda_and_radio_for_prognoz[gorod]=list_radio
+
+    except Exception as e:
+        logging.warning("get_dict_goroda_and_radio_for_prognoz"+'\n')
+        logging.warning(e+'\n')
+        return None
    
     return dict_goroda_and_radio_for_prognoz
 
@@ -185,12 +214,12 @@ def get_cloudy_and_osadki(cloudy_and_osadki_list,cloudy_or_osadki_parametr):
     #проверяем облачность и осадки по общему параметру
     cloudy=dict_cloudy_table.get(cloudy_or_osadki_parametr)
     #print('Cloudy по общему параметру '+str(cloudy))
-    if cloudy==None:
+    if cloudy is None:
         osadki=dict_osadki_table.get(cloudy_or_osadki_parametr)
         #print('Осадки по общему параметру '+str(osadki))
 
     #проверка облачности по картинке
-    if cloudy==None:                 
+    if cloudy is None:                 
         cloudy=dict_cloudy_image.get(cloudy_and_osadki_list[0])
         #print('Cloudy по картинке '+str(cloudy))
         
@@ -286,7 +315,7 @@ def get_parametres_dict_from_response(response:object,numbers_days_for_prognoz_d
         day=card.find_all('div',recursive=False)[0].get('id')
         if day=='': continue
         day_number=day.split('_')[1]
-        print(day_number)
+        #print(day_number)
         if numbers_days_for_prognoz_dict.get(day_number)!=None: continue
 
         table_with_parametres=card.find_all('div',recursive=False)[1].tbody
@@ -309,7 +338,7 @@ def get_data_for_gorod(lat_and_lon:str,numbers_days_for_prognoz_dict:dict):
         numbers_days_for_prognoz_dict[day_number_str]=False
 
     response=get_response(lat_and_lon)
-    print(response.status_code)
+    #print(response.status_code)
     
     parametres_dict=get_parametres_dict_from_response(response,numbers_days_for_prognoz_dict)
 
@@ -323,29 +352,34 @@ def connect_bd(path:str):
     return connection
 
 def get_settings_for_create_files(cursor:object, count_of_days_prognoz:int, cities_dict:dict):
-    settings_for_create_files={}
-    numbers_days_for_prognoz={}
-    current_date_and_time=datetime.now()-timedelta(days=1) 
-    print(current_date_and_time.strftime("%d.%m.%Y"))
+    try:
+        settings_for_create_files=[]
+        numbers_days_for_prognoz={}
+        current_date_and_time=datetime.now()-timedelta(days=1) 
+        print(current_date_and_time.strftime("%d.%m.%Y"))
 
-    for number_day_prognoz in range(1,count_of_days_prognoz+1):
-        current_date_and_time+=timedelta(days=1)
-        tomorrow_date_and_time=current_date_and_time+timedelta(days=1)
-        settings_for_create_files.append({'current_day':str(current_date_and_time.day),
-                                          'tomorrow_day':str(tomorrow_date_and_time.day),
-                                          'weekday':WEEKDAYS_DICT.get(current_date_and_time.isoweekday()),
-                                          'dict_goroda_and_radio_for_prognoz':get_dict_goroda_and_radio_for_prognoz(cursor=cursor,
-                                                                                cities_dict=cities_dict,date_for_prognoz=current_date_and_time)})
-        numbers_days_for_prognoz[str(current_date_and_time.day)]=False
-    numbers_days_for_prognoz[str(tomorrow_date_and_time.day)]=False
+        for number_day_prognoz in range(1,count_of_days_prognoz+1):
+            current_date_and_time+=timedelta(days=1)
+            tomorrow_date_and_time=current_date_and_time+timedelta(days=1)
+            settings_for_create_files.append({'current_day':str(current_date_and_time.day),
+                                              'tomorrow_day':str(tomorrow_date_and_time.day),
+                                              'weekday':WEEKDAYS_DICT.get(current_date_and_time.isoweekday()),
+                                              'dict_goroda_and_radio_for_prognoz':get_dict_goroda_and_radio_for_prognoz(cursor=cursor,
+                                                                                    cities_dict=cities_dict,date_for_prognoz=current_date_and_time)})
+            numbers_days_for_prognoz[str(current_date_and_time.day)]=False
+        numbers_days_for_prognoz[str(tomorrow_date_and_time.day)]=False
+    except Exception as e:
+        logging.warning("get_settings_for_create_files")
+        logging.warning(e)
+        return None, None
     return settings_for_create_files, numbers_days_for_prognoz
 
-def get_all_data(cities_dict:dict,numbers_days_for_prognoz:int)->dict:
+def get_all_data(cities_dict:dict,numbers_days_for_prognoz_dict:dict)->dict:
     parametres_dict_all=dict()
     for city,_ in cities_dict.items():
         print(city)
         lat_and_lon=cities_dict.get(city).get('lat_and_lon')
-        parametres_dict=get_data_for_gorod(lat_and_lon=lat_and_lon,numbers_days_for_prognoz=numbers_days_for_prognoz)
+        parametres_dict=get_data_for_gorod(lat_and_lon=lat_and_lon,numbers_days_for_prognoz_dict=numbers_days_for_prognoz_dict)
         pauze_time=random.randint(5, 10)
         time.sleep(pauze_time)
         parametres_dict_all[city]=parametres_dict
@@ -353,7 +387,7 @@ def get_all_data(cities_dict:dict,numbers_days_for_prognoz:int)->dict:
     return parametres_dict_all
 
 
-def run_konstruktor(settings_for_create_files:dict,cities_dict:dict,radio_dict:dict,parametres_dict_all:dict):
+def run_konstruktor(settings_for_create_files:list,cities_dict:dict,radio_dict:dict,parametres_dict_all:dict):
     for prognoz_settings in settings_for_create_files:
         print(prognoz_settings.get('weekday'))              
         for gorod, list_radio in prognoz_settings.get('dict_goroda_and_radio_for_prognoz').items():
@@ -370,14 +404,15 @@ def run_konstruktor(settings_for_create_files:dict,cities_dict:dict,radio_dict:d
                 radio_on_station=radio_dict.get(radio).get('radio_on_station')
                 create_weather_file(gorod, gorod_on_station, radio, parametrs_weather_current_day,parametrs_weather_tomorrow_day, prognoz_settings.get('weekday'), radio_on_station)
 
-def main(count_of_days_prognoz):
+def main(count_of_days_prognoz:int, user_list_cities:list=None):
     connection = connect_bd("../db.sqlite3")
     cursor = connection.cursor()
     
-    cities_dict=get_cities_dict(cursor,'settings_goroda')
+    cities_dict=get_cities_dict(cursor,'settings_goroda',user_list_cities)
+    print(cities_dict)
     radio_dict=get_radio_dict(cursor,'settings_radio')
     settings_for_create_files,numbers_days_for_prognoz=get_settings_for_create_files(cursor=cursor,count_of_days_prognoz=count_of_days_prognoz, cities_dict=cities_dict)
-    parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz=numbers_days_for_prognoz)
+    parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz_dict=numbers_days_for_prognoz)
 
     print('начинаю сборку')
     run_konstruktor(settings_for_create_files,cities_dict,radio_dict,parametres_dict_all)
@@ -385,7 +420,7 @@ def main(count_of_days_prognoz):
         connection.close()
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
 try:
-    main(count_of_days_prognoz=7)
+    main(count_of_days_prognoz=7, user_list_cities=['Пятигорск','Есентуки'])
     #проверка на count_of_days при ручном вводе
 except Exception as e:
     print(e)
