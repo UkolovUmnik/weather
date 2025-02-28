@@ -9,6 +9,7 @@ import time
 import os
 from create_weather_files2 import create_weather_file
 from bd_requests import get_data_from_bd
+from common_functions import merge_two_lists
 
 logging.basicConfig(level=logging.INFO, filename="log.log",filemode="w", format="%(asctime)s %(levelname)s %(message)s")
 
@@ -131,19 +132,6 @@ def check_gorod_in_table_constant_weather(cursor:object,name_table:str,gorod:str
         logging.warning(e)
         return None     
     return list_radio
-
-
-def merge_two_lists(list1:list,list2:list)->list:
-    if list1 is None or list2 is None: return None
-    if list1==[] and list2!=[]: return list2
-    if list2==[] and list1!=[]: return list1
-    list_end=[]
-    for element in list1:
-        list_end.append(element)
-    for element in list2:
-        if element not in list_end: 
-            list_end.append(element)
-    return list_end
 
 
 def get_dict_goroda_and_radio_for_prognoz(cursor:object,cities_dict:dict,date_for_prognoz):
@@ -349,9 +337,11 @@ def get_data_for_gorod(lat_and_lon:str,numbers_days_for_prognoz_dict:dict):
 
 def connect_bd(path:str):
     print(path)
+    logging.info("path_bd: "+path)
     #work_dir=os.path.abspath(os.curdir)
     #db_file=work_dir[:work_dir.rfind('\\')+1]+'db.sqlite3'
     connection = sqlite3.connect(path)
+    logging.info("program connected with bd")
     return connection
 
 def get_settings_for_create_files(cursor:object, count_of_days_prognoz:int, cities_dict:dict):
@@ -416,9 +406,11 @@ def main(count_of_days_prognoz:int, user_list_cities:list=None):
 
 
     cities_dict=get_cities_dict(cursor,'settings_goroda',user_list_cities)
-    print(cities_dict)
-    # radio_dict=get_radio_dict(cursor,'settings_radio')
-    # settings_for_create_files,numbers_days_for_prognoz=get_settings_for_create_files(cursor=cursor,count_of_days_prognoz=count_of_days_prognoz, cities_dict=cities_dict)
+    # print(cities_dict)
+    radio_dict=get_radio_dict(cursor,'settings_radio')
+    # print(radio_dict)
+    settings_for_create_files,numbers_days_for_prognoz=get_settings_for_create_files(cursor=cursor,count_of_days_prognoz=count_of_days_prognoz, cities_dict=cities_dict)
+    print(settings_for_create_files)
     # parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz_dict=numbers_days_for_prognoz)
 
     # print('начинаю сборку')
@@ -428,7 +420,7 @@ def main(count_of_days_prognoz:int, user_list_cities:list=None):
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
 try:
     #main(count_of_days_prognoz=7, user_list_cities=['Пятигорск','Есентуки'])
-    main(count_of_days_prognoz=7)
+    main(count_of_days_prognoz=7,user_list_cities=['Пятигорск','Есентуки'])
     #проверка на count_of_days при ручном вводе
 except Exception as e:
     print(e)
