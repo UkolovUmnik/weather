@@ -4,7 +4,7 @@ from django.contrib.auth.models import User,Group
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from settings.models import goroda,radio,permissions_goroda_and_directions
-from settings.models import permissions_for_urls_groups,permissions_for_urls_users,names_sections_and_urls,goroda_and_radio,constant_weather
+from settings.models import permissions_for_urls_groups,permissions_for_urls_users,names_sections_and_urls,goroda_and_radio,constant_weather,composite_weather,goroda_paramtres_weather,parameters_weather
 
 path_to_segments_weather_radio=os.path.abspath(os.curdir)+'\\files\segments_weather\Радио'
 path_to_segments_weather_goroda=os.path.abspath(os.curdir)+'\\files\segments_weather\Города'
@@ -62,8 +62,14 @@ def lists(request,requested_permission):
         table_radio=radio.objects.all()
         table_goroda_and_radio=goroda_and_radio.objects.all()
         table_constant_weather=constant_weather.objects.all()
+        table_composite_weather=composite_weather.objects.all()
+        table_parameters_weather=parameters_weather.objects.all()
+        table_goroda_paramtres_weather=goroda_paramtres_weather.objects.all()
         return render(request, "settings/lists.html",{"table_goroda":table_goroda,"table_radio":table_radio,
-                                                      'table_goroda_and_radio':table_goroda_and_radio,'table_constant_weather':table_constant_weather})
+                                                      'table_goroda_and_radio':table_goroda_and_radio,'table_constant_weather':table_constant_weather,
+                                                      'table_composite_weather':table_composite_weather,'table_goroda_paramtres_weather':table_goroda_paramtres_weather,
+                                                      'table_parameters_weather':table_parameters_weather
+                                                      })
     else:
         return HttpResponseNotFound("<h2>Доступ запрещен</h2>")
 
@@ -432,4 +438,159 @@ def change_constant_weather(request, requested_permission, id, operation):
                 data.delete()
                 return HttpResponseRedirect("/settings/lists/")
             except constant_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")
+
+@login_required
+def change_composite_weather(request, requested_permission, id, operation):
+    access_is_allowed=check_permission_for_url(request.user,requested_permission)
+    if access_is_allowed==False:
+        return HttpResponseNotFound("<h2>Доступ запрещен</h2>")
+    else:
+        if operation=='create':
+            try:
+                if request.method == "POST":
+                    data = composite_weather()
+                    data.gorod = request.POST.get("gorod")
+                    data.radio=request.POST.get("radio")
+                    table_goroda=goroda.objects.all()
+                    table_parameters_weather=parameters_weather.objects.all()
+                    list_goroda_additionally=''
+                    for element in table_goroda:
+                        gorod_status=request.POST.get(element.gorod)
+                        if gorod_status=='on':
+                            list_goroda_additionally+=element.gorod+','
+                    list_goroda_additionally=list_goroda_additionally[:-1]
+                    data.list_goroda_additionally = list_goroda_additionally
+                    data.save()                   
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    table_goroda=goroda.objects.all()
+                    table_radio=radio.objects.all()
+                    return render(request, "settings/composite_weather.html", {'table_goroda':table_goroda,'table_radio':table_radio})
+            except composite_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")    
+        elif operation=='edit': 
+            try:
+                data = composite_weather.objects.get(id=id)
+                if request.method == "POST":
+                    data.gorod = request.POST.get("gorod")
+                    data.radio=request.POST.get("radio")
+                    table_goroda=goroda.objects.all()
+                    table_parameters_weather=parameters_weather.objects.all()
+                    list_goroda_additionally=''
+                    for element in table_goroda:
+                        gorod_status=request.POST.get(element.gorod)
+                        if gorod_status=='on':
+                            list_goroda_additionally+=element.gorod+','
+                    list_goroda_additionally=list_goroda_additionally[:-1]
+                    data.list_goroda_additionally = list_goroda_additionally
+                    data.save()
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    table_goroda=goroda.objects.all()
+                    table_radio=radio.objects.all()
+                    list_goroda_additionally=data.list_goroda_additionally.split(',')
+                    return render(request, "settings/composite_weather.html", {"data": data,'table_goroda':table_goroda,'table_radio':table_radio,'list_goroda_additionally':list_goroda_additionally})
+            except composite_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")                
+        elif operation=='delete':
+            try:
+                data = composite_weather.objects.get(id=id)
+                data.delete()
+                return HttpResponseRedirect("/settings/lists/")
+            except composite_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")
+
+@login_required
+def change_goroda_paramtres_weather(request, requested_permission, id, operation):
+    access_is_allowed=check_permission_for_url(request.user,requested_permission)
+    if access_is_allowed==False:
+        return HttpResponseNotFound("<h2>Доступ запрещен</h2>")
+    else:
+        if operation=='create':
+            try:
+                if request.method == "POST":
+                    data = goroda_paramtres_weather()
+                    data.gorod = request.POST.get("gorod")
+                    table_parameters_weather=parameters_weather.objects.all()
+                    list_parameters=''
+                    for element in table_parameters_weather:
+                        parametr_status=request.POST.get(element.parameter_weather)
+                        if parametr_status=='on':
+                            list_parameters+=element.parameter_weather+','
+                    list_parameters=list_parameters[:-1]
+                    data.list_parametres_weather = list_parameters
+                    data.save()
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    table_goroda=goroda.objects.all()
+                    table_parameters_weather=parameters_weather.objects.all()
+                    return render(request, "settings/goroda_paramtres_weather.html", {'table_goroda':table_goroda,'table_parameters_weather':table_parameters_weather})
+            except goroda_paramtres_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")    
+        elif operation=='edit': 
+            try:
+                data = goroda_paramtres_weather.objects.get(id=id)
+                if request.method == "POST":
+                    data.gorod = request.POST.get("gorod")
+                    table_parameters_weather=parameters_weather.objects.all()
+                    list_parameters=''
+                    for element in table_parameters_weather:
+                        parametr_status=request.POST.get(element.parameter_weather)
+                        if parametr_status=='on':
+                            list_parameters+=element.parameter_weather+','
+                    list_parameters=list_parameters[:-1]
+                    data.list_parametres_weather = list_parameters
+                    data.save()
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    table_goroda=goroda.objects.all()
+                    list_parameters=data.list_parametres_weather.split(',')
+                    table_parameters_weather=parameters_weather.objects.all()
+                    return render(request, "settings/goroda_paramtres_weather.html", {"data": data,'table_goroda':table_goroda,'list_parameters':list_parameters,'table_parameters_weather':table_parameters_weather})
+            except goroda_paramtres_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")                
+        elif operation=='delete':
+            try:
+                data = goroda_paramtres_weather.objects.get(id=id)
+                data.delete()
+                return HttpResponseRedirect("/settings/lists/")
+            except goroda_paramtres_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")
+
+@login_required
+def change_parameters_weather(request, requested_permission, id, operation):
+    access_is_allowed=check_permission_for_url(request.user,requested_permission)
+    if access_is_allowed==False:
+        return HttpResponseNotFound("<h2>Доступ запрещен</h2>")
+    else:
+        if operation=='create':
+            try:
+                if request.method == "POST":
+                    data = parameters_weather()
+                    data.parameter_weather = request.POST.get("parameter_weather")
+                    data.save()
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    return render(request, "settings/parameters_weather.html")
+            except parameters_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")    
+        elif operation=='edit': 
+            try:
+                data = parameters_weather.objects.get(id=id)
+                if request.method == "POST":
+                    data.parameter_weather = request.POST.get("parameter_weather")
+                    data.save()
+                    return HttpResponseRedirect("/settings/lists/")
+                else:
+                    table_goroda=goroda.objects.all()
+                    return render(request, "settings/parameters_weather.html", {"data": data,'table_goroda':table_goroda})
+            except parameters_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")                
+        elif operation=='delete':
+            try:
+                data = parameters_weather.objects.get(id=id)
+                data.delete()
+                return HttpResponseRedirect("/settings/lists/")
+            except parameters_weather.DoesNotExist:
                 return HttpResponseNotFound("<h2>Данные не найдены</h2>")

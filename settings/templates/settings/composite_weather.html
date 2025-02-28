@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Город</label><br>
+			<select name="gorod">
+				{% for element in table_goroda %}
+					{% if element.gorod == data.gorod %}
+						<option selected="selected" value="{{ element.gorod }}">{{ element.gorod }}</option>
+					{% else %}
+						<option value="{{ element.gorod }}">{{ element.gorod }}</option>
+					{% endif %}	
+				{% endfor %}
+	     </select>
+        </p>
+		<p>
+            <label>Радио</label><br>
+			<select name="radio">
+				{% for element in table_radio %}
+					{% if element.radio == data.radio %}
+						<option selected="selected" value="{{element.radio }}">{{ element.radio }}</option>
+					{% else %}
+						<option value="{{ element.radio}}">{{ element.radio }}</option>
+					{% endif %}	
+				{% endfor %}
+	     </select>
+        </p>
+		<p>
+			<legend>Дополнительные города для выбора</legend>
+			{% for element in table_goroda %}
+				{% if element.gorod in list_goroda_additionally %}
+					<div>
+						<input type="checkbox" name="{{ element.gorod }}" checked />
+						<label for="{{ element.gorod }}">{{ element.gorod }}</label>
+					</div>
+				{% else %}
+					<div>
+						<input type="checkbox" name="{{ element.gorod }}" />
+						<label for="{{ element.gorod }}">{{ element.gorod }}</label>
+					</div>				
+				{% endif %}
+			{% endfor %}
+		</p>
+		
+		
+        <input type="submit" value="Сохранить" >
+    </form>
+</body>
+</html>

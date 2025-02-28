@@ -10,6 +10,14 @@ class goroda(models.Model):
     class Meta:
         ordering = ['gorod']
 
+class goroda_additionally(models.Model):
+    gorod=models.CharField(max_length=80)
+    gorod_in_yandex_weather=models.CharField(max_length=80)
+    gorod_id_yandex_weather=models.CharField(max_length=3,default='000')
+    gorod_lat_and_lon=models.CharField(max_length=100,default='000')
+    class Meta:
+        ordering = ['gorod']
+
 class radio(models.Model):
     radio=models.CharField(max_length=80)
     radio_on_station=models.CharField(max_length=80,default='default')
@@ -59,3 +67,20 @@ class permissions_goroda_and_directions(models.Model):
     gorod=models.CharField(max_length=80)
     direction=models.CharField(max_length=80)
 
+class composite_weather(models.Model):
+    gorod=models.CharField(max_length=80)
+    radio=models.CharField(max_length=80)
+    list_goroda_additionally=models.TextField()
+    class Meta:
+        ordering = ['gorod']
+
+class goroda_paramtres_weather(models.Model):
+    gorod=models.CharField(max_length=80)
+    list_parametres_weather=models.TextField()
+    class Meta:
+        ordering = ['gorod']
+
+class parameters_weather(models.Model):
+    parameter_weather=models.CharField(max_length=40)
+    class Meta:
+        ordering = ['parameter_weather']

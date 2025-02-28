@@ -9,7 +9,7 @@
 <h2>Список городов</h2>
 {% if table_goroda.count > 0 %}
     <table>
-        <thead><th>Город</th><th>Название города на станции</th><th>Город в Яндекс.Погода</th><th>Город id в Яндекс.Погода</th><th>Широта и долгота</th><th></th></thead>
+        <thead><th>Город</th><th>Название города на станции</th><th>Город в Яндекс.Погода</th><th></th></thead>
         {% for element in table_goroda %}
         <tr>
 			<td>{{ element.gorod }}</td>
@@ -79,6 +79,60 @@
     {% endif %}
 <table>
 <tr><td><a href="constant_weather/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Составная погода</h2>
+{% if table_composite_weather.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Радио</th><th>Список дополнительных городов</th><th></th></thead>
+        {% for element in table_composite_weather %}
+        <tr>
+			<td>{{ element.gorod }}</td>
+			<td>{{ element.radio }}</td>
+			<td>{{ element.list_goroda_additionally }}</td>
+            <td><a href="composite_weather/edit/{{element.id}}">Изменить</a> | <a href="composite_weather/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="composite_weather/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Параметры погоды для городов</h2>
+{% if table_goroda_paramtres_weather.count > 0 %}
+    <table>
+        <thead><th>Город</th><th>Параметры погоды для прогноза</th><th></th></thead>
+        {% for element in table_goroda_paramtres_weather %}
+        <tr>
+			<td>{{ element.gorod }}</td>
+			<td>{{ element.list_parametres_weather }}</td>
+            <td><a href="goroda_paramtres_weather/edit/{{element.id}}">Изменить</a> | <a href="goroda_paramtres_weather/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="goroda_paramtres_weather/create/0">Добавить</a></td></tr>
+</table>
+
+<h2>Параметры погоды для городов</h2>
+{% if table_parameters_weather.count > 0 %}
+    <table>
+        <thead><th>Параметр погоды</th></thead>
+        {% for element in table_parameters_weather %}
+        <tr>
+			<td>{{ element.parameter_weather }}</td>
+            <td><a href="parameters_weather/edit/{{element.id}}">Изменить</a> | <a href="parameters_weather/delete/{{element.id}}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+	
+    </table>
+    {% endif %}
+<table>
+<tr><td><a href="parameters_weather/create/0">Добавить</a></td></tr>
 </table>
 
 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>METANIT.COM</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Город</label><br>
+			<select name="gorod">
+				{% for element in table_goroda %}
+					{% if element.gorod == data.gorod %}
+						<option selected="selected" value="{{ element.gorod }}">{{ element.gorod }}</option>
+					{% else %}
+						<option value="{{ element.gorod }}">{{ element.gorod }}</option>
+					{% endif %}	
+				{% endfor %}
+	     </select>
+        </p>
+		<p>
+			<legend>Параметры погоды для города</legend>
+			{% for element in table_parameters_weather %}
+				{% if element.parameter_weather in list_parameters %}
+					<div>
+						<input type="checkbox" name="{{ element.parameter_weather }}" checked />
+						<label for="{{ element.parameter_weather }}">{{ element.parameter_weather }}</label>
+					</div>
+				{% else %}
+					<div>
+						<input type="checkbox" name="{{ element.parameter_weather }}" />
+						<label for="{{ element.parameter_weather }}">{{ element.parameter_weather }}</label>
+					</div>				
+				{% endif %}
+			{% endfor %}
+		</p>
+        <input type="submit" value="Сохранить" >
+    </form>
+</body>
+</html>

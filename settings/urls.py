@@ -20,6 +20,9 @@ from . import views
 page_prmissions_goroda_and_directions="permissions_goroda_and_directions/"
 page_permissions_for_urls="permissions_for_urls/"
 urlpatterns = [
+    path("lists/parameters_weather/<str:operation>/<int:id>/", views.change_parameters_weather, {'requested_permission':'Настройки/Справочники'}),
+    path("lists/goroda_paramtres_weather/<str:operation>/<int:id>/", views.change_goroda_paramtres_weather, {'requested_permission':'Настройки/Справочники'}),
+    path("lists/composite_weather/<str:operation>/<int:id>/", views.change_composite_weather, {'requested_permission':'Настройки/Справочники'}),
     path("lists/constant_weather/<str:operation>/<int:id>/", views.change_constant_weather, {'requested_permission':'Настройки/Справочники'}),
     path("lists/gorod_and_radio/<str:operation>/<int:id>/", views.change_gorod_and_radio, {'requested_permission':'Настройки/Справочники'}),
     path("lists/radio/<str:operation>/<int:id>/", views.change_radio, {'requested_permission':'Настройки/Справочники'}),
