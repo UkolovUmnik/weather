@@ -67,13 +67,6 @@ def check_gorod_for_prognoz_on_date(cursor:object,name_table:str,date_for_progno
         if day<10:
             day='0'+str(day)
 
-
-        # command="""
-        #     SELECT radio,status_weather FROM {name_table} WHERE gorod='{gorod}' AND year='{year}' AND month='{month}' AND day='{day}'
-        #     """
-        # cursor.execute(command.format(name_table=name_table,gorod=gorod,year=year,month=month,day=day))
-        # result_command = cursor.fetchall()
-
         data=get_data_from_bd(cursor=cursor, name_table=name_table, fields=['radio','status_weather'], where=[
             ('gorod',gorod),
             ('year',year),
@@ -238,43 +231,43 @@ def get_parametres_from_weather_table(table_element,number_row_in_table):
         if wind_speed==0:
             wind_speed=1
         wind_speed=str(wind_speed)
-        print('Скорость ветра= '+wind_speed)
+        # print('Скорость ветра= '+wind_speed)
         wind_direction=wind_block.find('div',class_='weather-table__wind-direction').abbr.text
         wind_direction=WIND_DIRECTION_DICT.get(wind_direction)
-        print('Направление ветра= '+str(wind_direction))
+        # print('Направление ветра= '+str(wind_direction))
     except AttributeError:
         wind_speed=wind_block.find('span',class_='weather-table__wind').text
         #костыль, чтобы программа не сбивалась
         if wind_speed=='Штиль':
             wind_speed='1'
             wind_direction='З'
-    print('Прошел ветер')
+    # print('Прошел ветер')
     try:
         #когда в таблице указана вилка температур
         t_max=row.find_all('td',recursive=False)[0].find('div',class_='weather-table__temp').span.text
         temperature=t_max
-        print(f'Стандартный случай t: {t_max}')
+        # print(f'Стандартный случай t: {t_max}')
         if ord(temperature[0])==8722: #8722-это код минуса в html кодировке, заменяем его на обычный в кодировке utf-8
             temperature=temperature.replace(temperature[0],'-')
     except:
         #случай, когда одна температура указана
         t_max=row.find_all('td',recursive=False)[0].find('div',class_='weather-table__temp').span.text
         temperature=t_max
-        print(f'Нестандартный случай t: {t_max}')
+        # print(f'Нестандартный случай t: {t_max}')
         if ord(temperature[0])==8722: #8722-это код минуса в html кодировке, заменяем его на обычный в кодировке utf-8
             temperature=temperature.replace(temperature[0],'-')
 
     temperature=str(int(temperature))
-    print('Прошел температуру')
+    # print('Прошел температуру')
 
     na_nebe_class_image=row.find_all('td',recursive=False)[1].img.get('class')
     na_nebe_class_image=na_nebe_class_image[1].replace('icon_thumb_','').replace('-d','').replace('-n','').split('-',1)
-    print('Класс картинки= '+str(na_nebe_class_image))
+    #print('Класс картинки= '+str(na_nebe_class_image))
 
     cloudy_or_osadki_parametr=row.find_all('td',recursive=False)[2].text
-    print('Облачность или осадки= '+cloudy_or_osadki_parametr)
+    #print('Облачность или осадки= '+cloudy_or_osadki_parametr)
     cloudy, osadki =  get_cloudy_and_osadki(na_nebe_class_image,cloudy_or_osadki_parametr)
-    print('Прошел облачность и осадки')
+    #print('Прошел облачность и осадки')
     #подумать, как сделать, если в будущем будут появляться новые значения, чтобы их заносить, узнавать об этом (в файлы записывать и т.д.)
 
     dict_paremetres=dict()
@@ -298,7 +291,7 @@ def get_parametres_dict_from_response(response:object,numbers_days_for_prognoz_d
     soup = BeautifulSoup(response.text, "html.parser")
     print('Загрузил страницу')
 
-    cards=soup.findAll('article',class_='card')
+    cards=soup.find_all('article',class_='card')
     print(f'Количество найденных таблиц: {len(cards)}')
     parametres_dict=dict()
     for card in cards:
@@ -308,7 +301,7 @@ def get_parametres_dict_from_response(response:object,numbers_days_for_prognoz_d
         if day=='': continue
         day_number=day.split('_')[1]
         #print(day_number)
-        if numbers_days_for_prognoz_dict.get(day_number)!=None: continue
+        if numbers_days_for_prognoz_dict.get(day_number)==None: continue
 
         table_with_parametres=card.find_all('div',recursive=False)[1].tbody
         day_parametres=get_parametres_from_weather_table(table_with_parametres,2)
@@ -319,7 +312,7 @@ def get_parametres_dict_from_response(response:object,numbers_days_for_prognoz_d
             if status==False:
                 status_end=False
                 break
-        print('Итоговый статус'+str(status_end))
+        # print('Итоговый статус'+str(status_end))
         if status_end==True:
             break                              
     return parametres_dict
@@ -370,33 +363,34 @@ def get_settings_for_create_files(cursor:object, count_of_days_prognoz:int, citi
 
 def get_all_data(cities_dict:dict,numbers_days_for_prognoz_dict:dict)->dict:
     parametres_dict_all=dict()
-    for city,_ in cities_dict.items():
+    for city in cities_dict.keys():
         print(city)
         lat_and_lon=cities_dict.get(city).get('lat_and_lon')
         parametres_dict=get_data_for_gorod(lat_and_lon=lat_and_lon,numbers_days_for_prognoz_dict=numbers_days_for_prognoz_dict)
         pauze_time=random.randint(5, 10)
         time.sleep(pauze_time)
         parametres_dict_all[city]=parametres_dict
-        print(parametres_dict)
+        # print(parametres_dict)
     return parametres_dict_all
 
 
-def run_konstruktor(settings_for_create_files:list,cities_dict:dict,radio_dict:dict,parametres_dict_all:dict):
+def run_konstruktor(settings_for_create_files:list,cities_dict:dict,radio_dict:dict,parametres_dict_all:dict,need_parameteres_all_dict:dict,goroda_additionally_all_dict):
     for prognoz_settings in settings_for_create_files:
         print(prognoz_settings.get('weekday'))              
         for gorod, list_radio in prognoz_settings.get('dict_goroda_and_radio_for_prognoz').items():
             print(gorod)
-            parametrs_weather_on_days_for_gorod=parametres_dict_all.get(gorod)
-            if parametrs_weather_on_days_for_gorod==None:
-                print('Не удалось получить город '+str(gorod))
-                continue
-            parametrs_weather_current_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('current_day'))
-            parametrs_weather_tomorrow_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('tomorrow_day'))
+            # parametrs_weather_on_days_for_gorod=parametres_dict_all.get(gorod)
+            # if parametrs_weather_on_days_for_gorod==None:
+            #     print('Не удалось получить город '+str(gorod))
+            #     continue
+            # parametrs_weather_current_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('current_day'))
+            # parametrs_weather_tomorrow_day=parametrs_weather_on_days_for_gorod.get(prognoz_settings.get('tomorrow_day'))
             gorod_on_station=cities_dict.get(gorod).get('city_on_station')
             for radio in list_radio:
                 radio_on_station=radio_dict.get(radio).get('radio_on_station')
-                create_weather_file(gorod, gorod_on_station, radio, parametrs_weather_current_day,parametrs_weather_tomorrow_day, prognoz_settings.get('weekday'), radio_on_station)
-
+                goroda_additionally=goroda_additionally_all_dict.get(gorod).get(radio)
+                create_weather_file(gorod, gorod_on_station, radio, parametres_dict_all, prognoz_settings, radio_on_station, goroda_additionally, need_parameteres_all_dict)
+    
 
 def get_goroda_additionally(cursor:object,gorod:str,name_table:str):
     radio_goroda_additionally_dict=dict()
@@ -410,7 +404,7 @@ def get_goroda_additionally(cursor:object,gorod:str,name_table:str):
    
     return radio_goroda_additionally_dict
 
-def get_need_parameteres_all_goroda(cursor:object,name_table:str):
+def get_need_parameteres_all_goroda(cursor:object,name_table:str)->dict:
     need_parameteres_all_goroda_dict=dict()
     need_parameteres_list=list()
     result_command=get_data_from_bd(cursor=cursor, name_table=name_table, fields=['gorod','list_parametres_weather'])
@@ -436,28 +430,31 @@ def main(count_of_days_prognoz:int, user_list_cities:list=None):
 
 
     cities_dict=get_cities_dict(cursor,'settings_goroda',user_list_cities)
-    # print(cities_dict)
+    print(cities_dict)
     #заполнение словаря дополнительных городов прогноза погоды в зависимости от основного города и радио
     goroda_additionally_all_dict=dict()
     for gorod in cities_dict.keys():
         goroda_additionally_all_dict[gorod]=get_goroda_additionally(cursor,gorod,'settings_composite_weather')
-    print('Общий словарь доп городов')
-    print(goroda_additionally_all_dict)
+    # print('Общий словарь доп городов')
+    # print(goroda_additionally_all_dict)
+
+    need_parameteres_all_dict=get_need_parameteres_all_goroda(cursor,'settings_goroda_paramtres_weather')
+    print(need_parameteres_all_dict)
 
     radio_dict=get_radio_dict(cursor,'settings_radio')
     # print(radio_dict)
     settings_for_create_files,numbers_days_for_prognoz=get_settings_for_create_files(cursor=cursor,count_of_days_prognoz=count_of_days_prognoz, cities_dict=cities_dict)
-    print(settings_for_create_files)
-    # parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz_dict=numbers_days_for_prognoz)
-
-    # print('начинаю сборку')
-    # run_konstruktor(settings_for_create_files,cities_dict,radio_dict,parametres_dict_all,need_parameteres_all_dict)
+    # print(settings_for_create_files)
+    parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz_dict=numbers_days_for_prognoz)
+    print(parametres_dict_all)
+    print('начинаю сборку')
+    run_konstruktor(settings_for_create_files,cities_dict,radio_dict,parametres_dict_all,need_parameteres_all_dict,goroda_additionally_all_dict)
     if connection:
         connection.close()
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
 try:
-    #main(count_of_days_prognoz=7, user_list_cities=['Пятигорск','Есентуки'])
-    main(count_of_days_prognoz=7,user_list_cities=['Пятигорск','Есентуки'])
+    #main(count_of_days_prognoz=7, user_list_cities=['Пятигорск','Ессентуки'])
+    main(count_of_days_prognoz=7,user_list_cities=['Пятигорск','Ессентуки'])
     #проверка на count_of_days при ручном вводе
 except Exception as e:
     print(e)
