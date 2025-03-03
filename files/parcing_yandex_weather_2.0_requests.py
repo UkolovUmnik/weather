@@ -453,7 +453,7 @@ def main(count_of_days_prognoz:int, user_list_cities:list=None):
         connection.close()
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
 try:
-    #main(count_of_days_prognoz=7, user_list_cities=['Пятигорск','Ессентуки'])
+    #main(count_of_days_prognoz=7)
     main(count_of_days_prognoz=7,user_list_cities=['Пятигорск','Ессентуки'])
     #проверка на count_of_days при ручном вводе
 except Exception as e:

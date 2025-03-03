@@ -38,18 +38,18 @@ def create_weather_file_part(weather_segments_dir:str,dict_parametres:dict,need_
         return None
     return weather_file_part 
 
+
 def create_weather_file(city:str, city_on_station:str, radio:str, parametres_dict_all:dict, prognoz_settings:dict, radio_on_station:str, goroda_additionally:list, need_parameteres_all_dict:dict):
     try:
         oformlenie=AudioSegment.from_mp3(weather_segments_dir+'/Радио/'+radio+'/oformlenie.mp3')
-        #по данным нейросети яндекс
+        
         phrase_yandex=AudioSegment.from_mp3(weather_segments_dir+'/Города/Яндекс нейросеть.mp3')
-        #фраза сегодня в таком-то городе днем                                    
+                                           
         phrase_today_day_in_city=AudioSegment.from_mp3(weather_segments_dir+'/Города/'+city+'/сегодня.mp3')
-        #фраза завтра в таком-то городе днем
+        
         phrase_tomorrow_day_in_city=AudioSegment.from_mp3(weather_segments_dir+'/Города/'+city+'/завтра.mp3')   
-        #прогноз погоды
-        weather_today_day_main=create_weather_file_part(weather_segments_dir, parametres_dict_all.get(city).get(prognoz_settings.get('current_day')).get('day'), need_parameteres_all_dict.get(city))
-        #прогноз погоды
+        
+        weather_today_day_main=create_weather_file_part(weather_segments_dir, parametres_dict_all.get(city).get(prognoz_settings.get('current_day')).get('day'), need_parameteres_all_dict.get(city))    
         weather_tomorrow_day_main=create_weather_file_part(weather_segments_dir, parametres_dict_all.get(city).get(prognoz_settings.get('tomorrow_day')).get('day'), need_parameteres_all_dict.get(city))
         
         wheather_today=phrase_yandex+phrase_today_day_in_city+weather_today_day_main
@@ -73,11 +73,17 @@ def create_weather_file(city:str, city_on_station:str, radio:str, parametres_dic
             os.mkdir(output_directory)
 
         weather_file_today = oformlenie.overlay(wheather_today, position=speaker_timeline_position)[:len(wheather_today)+speaker_timeline_position+1000].fade_out(1000)
-        filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_до.mp3'
+        if radio=='Радио Родных Дорог':
+            filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_'+str(prognoz_settings.get('current_day'))+'_до.mp3'
+        else:
+            filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_до.mp3'
         weather_file_today.set_frame_rate(44100).export(output_directory+'/'+filename, format='mp3', bitrate="256k")
         print(filename)
-
-        filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_после.mp3'                                      
+        
+        if radio=='Радио Родных Дорог':
+            filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_'+str(prognoz_settings.get('tomorrow_day'))+'_после.mp3'
+        else:
+            filename='Погода_'+city_on_station+'_'+radio_on_station+'_'+prognoz_settings.get('weekday')+'_после.mp3'                                      
         weather_file_tomorrow = oformlenie.overlay(wheather_tomorrow, position=speaker_timeline_position)[:len(wheather_today)+speaker_timeline_position+1000].fade_out(1000)
         weather_file_tomorrow.set_frame_rate(44100).export(output_directory+'/'+filename, format='mp3',bitrate="256k")
         print(filename)    

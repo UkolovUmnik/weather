@@ -6,8 +6,10 @@ from django.http import HttpResponseRedirect, HttpResponseNotFound
 from settings.models import goroda,radio,permissions_goroda_and_directions
 from settings.models import permissions_for_urls_groups,permissions_for_urls_users,names_sections_and_urls,goroda_and_radio,constant_weather,composite_weather,goroda_paramtres_weather,parameters_weather
 
-path_to_segments_weather_radio=os.path.abspath(os.curdir)+'\\files\segments_weather\Радио'
-path_to_segments_weather_goroda=os.path.abspath(os.curdir)+'\\files\segments_weather\Города'
+#path_to_segments_weather_radio=os.path.abspath(os.curdir)+'\\files\segments_weather\Радио'
+path_to_segments_weather_radio='../files/segments_weather/Радио'
+#path_to_segments_weather_goroda=os.path.abspath(os.curdir)+'\\files\segments_weather\Города'
+path_to_segments_weather_goroda='../files/segments_weather/Города'
 
 def check_permission_for_url(user,requested_permission):
     status=False
@@ -30,8 +32,7 @@ def check_permission_for_url(user,requested_permission):
         for permission in list_permissions:
             if permission==requested_permission:
                 status=True
-                break
-            
+                break           
     return status
 
 
@@ -308,6 +309,15 @@ def change_gorod(request, requested_permission, id, operation):
                     data.gorod_lat_and_lon = request.POST.get("gorod_lat_and_lon")
                     data.save()
 
+                    data=goroda_paramtres_weather()
+                    data.gorod = new_gorod
+                    list_parameters=''
+                    table_parameters_weather=parameters_weather.objects.all()
+                    for parametr in table_parameters_weather:
+                        list_parameters+=parametr.parameter_weather+','
+                    list_parameters=list_parameters[:-1]
+                    data.list_parametres_weather=list_parameters
+                    data.save()
                     #создаем папку в файлах погоды по новый город
                     try:
                         os.mkdir(path_to_segments_weather_goroda+'\\'+new_gorod)
@@ -554,6 +564,24 @@ def change_goroda_paramtres_weather(request, requested_permission, id, operation
             try:
                 data = goroda_paramtres_weather.objects.get(id=id)
                 data.delete()
+                return HttpResponseRedirect("/settings/lists/")
+            except goroda_paramtres_weather.DoesNotExist:
+                return HttpResponseNotFound("<h2>Данные не найдены</h2>")
+        elif operation=='all_default':
+            try:
+                for element in goroda.objects.all():
+                    if goroda_paramtres_weather.objects.filter(gorod = element.gorod).exists():
+                        data=goroda_paramtres_weather.objects.get(gorod = element.gorod)
+                    else:
+                        data=goroda_paramtres_weather()
+                    data.gorod = element.gorod
+                    list_parameters=''
+                    table_parameters_weather=parameters_weather.objects.all()
+                    for parametr in table_parameters_weather:
+                        list_parameters+=parametr.parameter_weather+','
+                    list_parameters=list_parameters[:-1]
+                    data.list_parametres_weather=list_parameters
+                    data.save()
                 return HttpResponseRedirect("/settings/lists/")
             except goroda_paramtres_weather.DoesNotExist:
                 return HttpResponseNotFound("<h2>Данные не найдены</h2>")
