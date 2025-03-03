@@ -145,7 +145,8 @@ def get_dict_goroda_and_radio_for_prognoz(cursor:object,cities_dict:dict,date_fo
                 logging.warning("function get_dict_goroda_and_radio_for_prognoz")
                 logging.warning("request in bd is wrong")
                 return None
-            dict_goroda_and_radio_for_prognoz[gorod]=list_radio
+            if list_radio!=[]:
+                dict_goroda_and_radio_for_prognoz[gorod]=list_radio
 
     except Exception as e:
         logging.warning("function get_dict_goroda_and_radio_for_prognoz")
@@ -385,7 +386,6 @@ def run_konstruktor(settings_for_create_files:list,cities_dict:dict,radio_dict:d
         print(prognoz_settings.get('weekday'))              
         for gorod, list_radio in prognoz_settings.get('dict_goroda_and_radio_for_prognoz').items():
             print(gorod)
-
             parametrs_weather_on_days_for_gorod=parametres_dict_all.get(gorod)
             if parametrs_weather_on_days_for_gorod==None:
                 print('Не удалось получить город '+str(gorod))
@@ -398,40 +398,27 @@ def run_konstruktor(settings_for_create_files:list,cities_dict:dict,radio_dict:d
                 create_weather_file(gorod, gorod_on_station, radio, parametrs_weather_current_day,parametrs_weather_tomorrow_day, prognoz_settings.get('weekday'), radio_on_station)
 
 
-def get_goroda_additionally(cursor,connection,gorod,name_table):
+def get_goroda_additionally(cursor:object,gorod:str,name_table:str):
     radio_goroda_additionally_dict=dict()
     goroda_additionally_list=[]
-    command="""
-        SELECT radio,list_goroda_additionally FROM {name_table} WHERE gorod='{gorod}'
-        """
-    cursor.execute(command.format(name_table=name_table,gorod=gorod))
-    result_command = cursor.fetchall()
-    if len(result_command)==0:
-        return None
+    result_command=get_data_from_bd(cursor=cursor, name_table=name_table, fields=['radio','list_goroda_additionally'], where=[('gorod',gorod)])
     for row in result_command:
-        print(row)
         for element in f"{row[1]}".split(','):
-            print(element)
             goroda_additionally_list.append(element)
         radio_goroda_additionally_dict[f"{row[0]}"]=goroda_additionally_list
-
         goroda_additionally_list=[]
    
     return radio_goroda_additionally_dict
 
-def get_need_parameteres_all_goroda(cursor,connection,name_table):
+def get_need_parameteres_all_goroda(cursor:object,name_table:str):
     need_parameteres_all_goroda_dict=dict()
-    need_parameteres_dict=dict()
-    command="""
-        SELECT gorod,list_parametres_weather FROM {name_table}
-        """
-    cursor.execute(command.format(name_table=name_table))
-    result_command = cursor.fetchall()
+    need_parameteres_list=list()
+    result_command=get_data_from_bd(cursor=cursor, name_table=name_table, fields=['gorod','list_parametres_weather'])
     for row in result_command:
         for element in f"{row[1]}".split(','):
-            need_parameteres_dict[element]=''
-        need_parameteres_all_goroda_dict[f"{row[0]}"]=need_parameteres_dict
-        need_parameteres_dict={}
+            need_parameteres_list.append(element)
+        need_parameteres_all_goroda_dict[f"{row[0]}"]=need_parameteres_list
+        need_parameteres_list=[]
    
     return need_parameteres_all_goroda_dict
 
@@ -439,27 +426,24 @@ def get_need_parameteres_all_goroda(cursor,connection,name_table):
 def main(count_of_days_prognoz:int, user_list_cities:list=None):
     connection = connect_bd("../db.sqlite3")
     cursor = connection.cursor()
-    
-    # result=get_data_from_bd(cursor=cursor, name_table='settings_goroda')
-    # print(result)
-
-    #заполнение словаря дополнительных городов прогноза погоды в зависимости от основного города и радио
-    # goroda_additionally_all_dict=dict()
-    # for gorod in list_goroda:
-    #     goroda_additionally_all_dict[gorod]=get_goroda_additionally(cursor,connection,gorod,'settings_composite_weather')
-    # print('Общий словарь доп городов')
-    # print(goroda_additionally_all_dict)
 
     # goroda_additionally_for_radio=goroda_additionally_all_dict.get(gorod)
     # print('Словарь доп городов по главному городу')
     # print(goroda_additionally_for_radio)
     # goroda_additionally=goroda_additionally_for_radio.get(radio)
-    # reate_weather_files(gorod, gorod_on_station, radio, parametres_dict_all, prognoz_settings.get('weekday')+'_'+current_day, 
+    # create_weather_files(gorod, gorod_on_station, radio, parametres_dict_all, prognoz_settings.get('weekday')+'_'+current_day, 
     #                     radio_on_station,need_parameteres_all_dict,goroda_additionally,current_day,tomorrow_day)
 
 
     cities_dict=get_cities_dict(cursor,'settings_goroda',user_list_cities)
     # print(cities_dict)
+    #заполнение словаря дополнительных городов прогноза погоды в зависимости от основного города и радио
+    goroda_additionally_all_dict=dict()
+    for gorod in cities_dict.keys():
+        goroda_additionally_all_dict[gorod]=get_goroda_additionally(cursor,gorod,'settings_composite_weather')
+    print('Общий словарь доп городов')
+    print(goroda_additionally_all_dict)
+
     radio_dict=get_radio_dict(cursor,'settings_radio')
     # print(radio_dict)
     settings_for_create_files,numbers_days_for_prognoz=get_settings_for_create_files(cursor=cursor,count_of_days_prognoz=count_of_days_prognoz, cities_dict=cities_dict)
@@ -467,7 +451,7 @@ def main(count_of_days_prognoz:int, user_list_cities:list=None):
     # parametres_dict_all=get_all_data(cities_dict=cities_dict,numbers_days_for_prognoz_dict=numbers_days_for_prognoz)
 
     # print('начинаю сборку')
-    # run_konstruktor(settings_for_create_files,cities_dict,radio_dict,parametres_dict_all)
+    # run_konstruktor(settings_for_create_files,cities_dict,radio_dict,parametres_dict_all,need_parameteres_all_dict)
     if connection:
         connection.close()
 #добавить на сайт колонку к городам назваие на станции, и в создание файлов учесть        
